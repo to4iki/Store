@@ -15,7 +15,6 @@ A small, fast and scalable state-management solution using simplified flux princ
 Store provides a simple and intuitive API for state management, inspired by Zustand. It supports both iOS 17+ with `@Observable` and iOS 16 and below with `ObservableObject`.
 
 ### Basic Example
-
 First, define your state and actions:
 
 ```swift
@@ -110,6 +109,21 @@ struct CounterView: View {
       }
     }
   }
+}
+```
+
+## Middleware
+Middleware provides a way to extend Store with additional functionality. Think of middleware as a pipeline that wraps around state updates - each middleware can inspect the current state, modify the update process, or perform side effects like logging.
+
+### Using Middleware
+Add middleware to your store by passing them to the `middlewares` parameter:
+
+```swift
+let (store, action) = createStore(
+  initialState: CounterFeature.State(),
+  middlewares: [SimplePrintMiddleware<CounterFeature.State>()]
+) { set in
+  // ... action definitions
 }
 ```
 

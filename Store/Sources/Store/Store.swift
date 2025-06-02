@@ -42,7 +42,7 @@
 
   /// Creates a store and its associated actions
   ///
-  /// This factory function takes an initial state and an action creation function,
+  /// This factory function takes an initial state, optional middleware, and an action creation function,
   /// then returns a store instance with its corresponding actions. The actions
   /// provide an interface for updating the state in a type-safe manner.
   ///
@@ -51,6 +51,7 @@
   ///
   /// - Parameters:
   ///   - initialState: The initial state for the store
+  ///   - middlewares: Array of middleware to apply to state updates (applied in reverse order)
   ///   - createAction: A function that receives a StateSet and returns actions
   /// - Returns: A tuple containing the created store and its actions
   ///
@@ -76,12 +77,20 @@
   @MainActor
   public func createStore<State, Action>(
     initialState: State,
+    middleware: [any Middleware<State>] = [],
     createAction: (StateSet<State>) -> Action
   ) -> (store: Store<State>, action: Action) {
     let store = Store(initialState: initialState)
 
-    let setter = StateSet<State> { updater in
+    let baseSetter = StateSet<State> { updater in
       store.set(updater)
+    }
+
+    let setter = middleware.reversed().reduce(baseSetter) { nextSetter, middleware in
+      StateSet<State> { updater in
+        let middlewareApply = middleware.apply(currentState: store.state, next: nextSetter)
+        middlewareApply(updater)
+      }
     }
 
     let action = createAction(setter)
@@ -109,12 +118,20 @@
   @MainActor
   public func createStore<State, Action>(
     initialState: State,
+    middleware: [any Middleware<State>] = [],
     createAction: (StateSet<State>) -> Action
   ) -> (store: Store<State>, action: Action) {
     let store = Store(initialState: initialState)
 
-    let setter = StateSet<State> { updater in
+    let baseSetter = StateSet<State> { updater in
       store.set(updater)
+    }
+
+    let setter = middleware.reversed().reduce(baseSetter) { nextSetter, middleware in
+      StateSet<State> { updater in
+        let middlewareApply = middleware.apply(currentState: store.state, next: nextSetter)
+        middlewareApply(updater)
+      }
     }
 
     let action = createAction(setter)
