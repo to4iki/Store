@@ -1,5 +1,6 @@
 # Store
 ![Swift 6](https://img.shields.io/badge/swift-6-orange.svg)
+![iOS 17+](https://img.shields.io/badge/iOS-17%2B-blue.svg)
 ![SPM compatible](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
@@ -12,7 +13,7 @@ A small, fast and scalable state-management solution using simplified flux princ
 ```
 
 ## Usage
-Store provides a simple and intuitive API for state management, inspired by Zustand. It supports both iOS 17+ with `@Observable` and iOS 16 and below with `ObservableObject`.
+Store provides a simple and intuitive API for state management, inspired by Zustand.
 
 ### Basic Example
 First, define your state and actions:
@@ -52,7 +53,6 @@ struct CounterFeature {
 
 Then use it in your SwiftUI view:
 
-#### iOS 17+ (with @Observable)
 ```swift
 import SwiftUI
 
@@ -64,36 +64,6 @@ struct CounterView: View {
     let feature = CounterFeature()
     let (store, action) = feature.useStore()
     self._store = State(initialValue: store)
-    self.action = action
-  }
-
-  var body: some View {
-    VStack(spacing: 20) {
-      Text("Count: \(store.state.count)")
-        .font(.title)
-
-      HStack(spacing: 16) {
-        Button("−") { action.decrement() }
-        Button("Reset") { action.reset() }
-        Button("+") { action.increment() }
-      }
-    }
-  }
-}
-```
-
-#### iOS 16 and below (with ObservableObject)
-```swift
-import SwiftUI
-
-struct CounterView: View {
-  @StateObject private var store: Store<CounterFeature.State>
-  private let action: CounterFeature.Action
-
-  init() {
-    let feature = CounterFeature()
-    let (store, action) = feature.useStore()
-    self._store = StateObject(wrappedValue: store)
     self.action = action
   }
 
