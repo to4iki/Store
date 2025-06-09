@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    strategy:
+      matrix:
+        os: [macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: "6.1"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run tests
+        run: make test
