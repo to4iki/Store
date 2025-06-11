@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	swift test --package-path Store --parallel
+	swift test --parallel
 
 .PHONY: format
 format:
