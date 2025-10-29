@@ -16,7 +16,7 @@ struct MiddlewareTests {
         StateSet<TestState> { updater in
           var newState = currentState
           updater(&newState)
-          newState.count += 1j
+          newState.count += 1
           next { state in
             state = newState
           }
