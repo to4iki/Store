@@ -98,10 +98,10 @@ let (store, action) = createStore(
 ```
 
 ## Slices
-Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. This is particularly useful for complex applications where different parts of the state need to be managed independently but can also interact with each other.
+Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. Like [Zustand's slices pattern](https://docs.pmnd.rs/zustand/guides/slices-pattern), each slice defines its own state and actions, and you compose them into a single store using `createStore` with `StateSet.scoped`.
 
-### Basic Example
-Define individual slices by implementing the `Slice` protocol:
+### Defining Slices
+Implement the `Slice` protocol to define each slice:
 
 ```swift
 import Store
@@ -115,14 +115,14 @@ struct FishSlice: Slice {
     let addFish: () -> Void
   }
 
-  func create(_ set: StateSet<State>) -> (state: State, action: Action) {
-    let state = State()
-    let action = Action(
+  var initialState = State()
+
+  func createAction(_ set: StateSet<State>) -> Action {
+    Action(
       addFish: {
         set { $0.fishes += 1 }
       }
     )
-    return (state, action)
   }
 }
 
@@ -135,38 +135,45 @@ struct BearSlice: Slice {
     let addBear: () -> Void
   }
 
-  func create(_ set: StateSet<State>) -> (state: State, action: Action) {
-    let state = State()
-    let action = Action(
+  var initialState: State { State() }
+
+  func createAction(_ set: StateSet<State>) -> Action {
+    Action(
       addBear: {
         set { $0.bears += 1 }
       }
     )
-    return (state, action)
   }
 }
 ```
 
-Use `createStoreWithSlices` to combine multiple slices and add cross-slice actions:
+### Composing Slices
+Compose slices into a single store using `createStore` and `set.scoped`. Define your own combined state and action types — no wrapper types needed:
 
 ```swift
 struct BearFishFeature {
-  typealias State = CombinedState<FishSlice.State, BearSlice.State>
-  typealias Action = CombinedAction<FishSlice.Action, BearSlice.Action, CrossAction>
+  struct State: Sendable {
+    var fish = FishSlice.State()
+    var bear = BearSlice.State()
+  }
 
-  struct CrossAction {
+  struct Action {
+    let fish: FishSlice.Action
+    let bear: BearSlice.Action
     let eatFish: () -> Void
   }
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStoreWithSlices(FishSlice(), BearSlice()) { set in
-      CrossAction(
+    createStore(initialState: State()) { set in
+      Action(
+        fish: FishSlice().createAction(set.scoped(\.fish)),
+        bear: BearSlice().createAction(set.scoped(\.bear)),
         eatFish: {
           set { state in
-            if state.fishes > 0 {
-              state.fishes -= 1
-              state.bears += 1
+            if state.fish.fishes > 0 {
+              state.fish.fishes -= 1
+              state.bear.bears += 1
             }
           }
         }
@@ -177,8 +184,6 @@ struct BearFishFeature {
 ```
 
 Then use it in your SwiftUI view:
-
-Access both individual slice properties and cross-slice actions through `@dynamicMemberLookup`.
 
 ```swift
 struct BearFishView: View {
@@ -194,12 +199,12 @@ struct BearFishView: View {
 
   var body: some View {
     VStack {
-      Text("🐟 Fishes: \(store.state.fishes)")
-      Text("🐻 Bears: \(store.state.bears)")
+      Text("🐟 Fishes: \(store.state.fish.fishes)")
+      Text("🐻 Bears: \(store.state.bear.bears)")
 
       HStack {
-        Button("Add Fish") { action.addFish() }
-        Button("Add Bear") { action.addBear() }
+        Button("Add Fish") { action.fish.addFish() }
+        Button("Add Bear") { action.bear.addBear() }
         Button("Bear Eats Fish") { action.eatFish() }
       }
     }
