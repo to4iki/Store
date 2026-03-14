@@ -28,4 +28,19 @@ public struct StateSet<State> {
   public func callAsFunction(_ updater: StateUpdater<State>) {
     set(updater)
   }
+
+  /// Creates a scoped setter that operates on a child state
+  ///
+  /// This method enables slice composition by creating a StateSet that targets
+  /// a specific portion of the parent state via a WritableKeyPath.
+  ///
+  /// - Parameter keyPath: A writable key path from the parent state to the child state
+  /// - Returns: A new StateSet scoped to the child state
+  public func scoped<ChildState>(_ keyPath: WritableKeyPath<State, ChildState>) -> StateSet<ChildState> {
+    StateSet<ChildState> { childUpdater in
+      self { state in
+        childUpdater(&state[keyPath: keyPath])
+      }
+    }
+  }
 }

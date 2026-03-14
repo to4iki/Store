@@ -10,14 +10,12 @@ struct FishSlice: Slice {
     let addFish: () -> Void
   }
 
-  func create(_ set: StateSet<State>) -> (state: State, action: Action) {
-    let state = State()
-    let action = Action(
+  func createAction(_ set: StateSet<State>) -> Action {
+    Action(
       addFish: {
         set { $0.fishes += 1 }
       }
     )
-    return (state, action)
   }
 }
 
@@ -30,34 +28,38 @@ struct BearSlice: Slice {
     let addBear: () -> Void
   }
 
-  func create(_ set: StateSet<State>) -> (state: State, action: Action) {
-    let state = State()
-    let action = Action(
+  func createAction(_ set: StateSet<State>) -> Action {
+    Action(
       addBear: {
         set { $0.bears += 1 }
       }
     )
-    return (state, action)
   }
 }
 
 struct BearFishFeature {
-  typealias State = CombinedState<FishSlice.State, BearSlice.State>
-  typealias Action = CombinedAction<FishSlice.Action, BearSlice.Action, CrossAction>
+  struct State: Sendable {
+    var fish = FishSlice.State()
+    var bear = BearSlice.State()
+  }
 
-  struct CrossAction {
+  struct Action {
+    let fish: FishSlice.Action
+    let bear: BearSlice.Action
     let eatFish: () -> Void
   }
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStoreWithSlices(FishSlice(), BearSlice(), middleware: [SimplePrintMiddleware()]) { set in
-      CrossAction(
+    createStore(initialState: State(), middleware: [SimplePrintMiddleware()]) { set in
+      Action(
+        fish: FishSlice().createAction(set.scoped(\.fish)),
+        bear: BearSlice().createAction(set.scoped(\.bear)),
         eatFish: {
           set { state in
-            if state.fishes > 0 {
-              state.fishes -= 1
-              state.bears += 1
+            if state.fish.fishes > 0 {
+              state.fish.fishes -= 1
+              state.bear.bears += 1
             }
           }
         }
@@ -84,11 +86,11 @@ struct BearFishView: View {
 
       // Fish Section
       VStack(spacing: 16) {
-        Text("🐟 Fishes: \(store.state.fishes)")
+        Text("🐟 Fishes: \(store.state.fish.fishes)")
           .font(.title2)
 
         Button("Add Fish") {
-          action.addFish()
+          action.fish.addFish()
         }
         .buttonStyle(.borderedProminent)
       }
@@ -98,12 +100,12 @@ struct BearFishView: View {
 
       // Bear Section
       VStack(spacing: 16) {
-        Text("🐻 Bears: \(store.state.bears)")
+        Text("🐻 Bears: \(store.state.bear.bears)")
           .font(.title2)
 
         HStack(spacing: 16) {
           Button("Add Bear") {
-            action.addBear()
+            action.bear.addBear()
           }
           .buttonStyle(.borderedProminent)
 
