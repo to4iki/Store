@@ -1,4 +1,4 @@
 [tagpr]
 releaseBranch = main
 versionFile = -
-vPrefix = true
+vPrefix = false
