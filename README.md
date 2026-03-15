@@ -86,12 +86,12 @@ struct CounterView: View {
 Middleware provides a way to extend Store with additional functionality. Think of middleware as a pipeline that wraps around state updates - each middleware can inspect the current state, modify the update process, or perform side effects like logging.
 
 ### Using Middleware
-Add middleware to your store by passing them to the `middlewares` parameter:
+Add middleware to your store by passing them to the `middleware` parameter:
 
 ```swift
 let (store, action) = createStore(
   initialState: CounterFeature.State(),
-  middlewares: [SimplePrintMiddleware<CounterFeature.State>()]
+  middleware: [SimplePrintMiddleware<CounterFeature.State>()]
 ) { set in
   // ... action definitions
 }
@@ -115,8 +115,6 @@ struct FishSlice: Slice {
     let addFish: () -> Void
   }
 
-  var initialState = State()
-
   func createAction(_ set: StateSet<State>) -> Action {
     Action(
       addFish: {
@@ -134,8 +132,6 @@ struct BearSlice: Slice {
   struct Action {
     let addBear: () -> Void
   }
-
-  var initialState: State { State() }
 
   func createAction(_ set: StateSet<State>) -> Action {
     Action(
