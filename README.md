@@ -4,7 +4,7 @@
 ![SPM compatible](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
-A small, fast and scalable state-management solution using simplified flux principles.
+A small, fast and scalable state-management solution using simplified flux principles, inspired by [Zustand](https://github.com/pmndrs/zustand).
 
 ## Installation
 ### Swift Package Manager
@@ -98,7 +98,7 @@ let (store, action) = createStore(
 ```
 
 ## Slices
-Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. Like [Zustand's slices pattern](https://docs.pmnd.rs/zustand/guides/slices-pattern), each slice defines its own state and actions, and you compose them into a single store using `createStore` with `StateSet.scoped`.
+Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. Like [Zustand's slices pattern](https://zustand.docs.pmnd.rs/learn/guides/slices-pattern), each slice defines its own state and actions, and you compose them into a single store using `createStore` with `StateSet.scoped`.
 
 ### Defining Slices
 Implement the `Slice` protocol to define each slice:
