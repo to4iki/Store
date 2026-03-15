@@ -12,7 +12,10 @@ public typealias StateUpdater<State> = (inout State) -> Void
 /// StateSet wraps a StateUpdater function and provides a clean interface for
 /// updating store state. It implements `callAsFunction` to make instances
 /// callable like regular functions, providing an intuitive API for state updates.
-public struct StateSet<State> {
+///
+/// - Note: Conforms to `Sendable` via `@unchecked` because all state mutations
+///   are guaranteed to execute on `@MainActor` through the `Store` and `createStore` API.
+public struct StateSet<State>: @unchecked Sendable {
   private let set: (StateUpdater<State>) -> Void
 
   init(_ set: @escaping (StateUpdater<State>) -> Void) {
