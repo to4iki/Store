@@ -2,6 +2,7 @@
 ///
 /// If you want to output the differences clearly,
 /// use https://github.com/pointfreeco/swift-custom-dump
+@available(*, deprecated, message: "Use LoggingMiddleware instead")
 public struct SimplePrintMiddleware<State>: Middleware {
   public init() {}
 
