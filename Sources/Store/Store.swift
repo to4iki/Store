@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 /// A Zustand-like state management store for SwiftUI
@@ -18,6 +19,8 @@ public final class Store<State: Sendable> {
   /// - Note: State changes automatically trigger SwiftUI view updates via @Observable
   public private(set) var state: State
 
+  private var subscriptions: [UUID: @MainActor @Sendable (State, State) -> Void] = [:]
+
   /// Initializes the store with an initial state
   ///
   /// - Parameter initialState: The initial state value for the store
@@ -28,13 +31,43 @@ public final class Store<State: Sendable> {
   /// Updates the store's state using a functional setter
   ///
   /// This method creates a copy of the current state, applies the updater function
-  /// to modify it, and then sets the new state.
+  /// to modify it, and then sets the new state. All active subscribers are notified
+  /// with the new and previous state values.
   ///
   /// - Parameter updater: A closure that receives an inout reference to the state for modification
   func set(_ updater: StateUpdater<State>) {
+    let previousState = state
     var newState = state
     updater(&newState)
     self.state = newState
+
+    for listener in subscriptions.values {
+      listener(newState, previousState)
+    }
+  }
+
+  /// Subscribes a listener to state changes
+  ///
+  /// The listener is called each time the store's state is updated via `set(_:)`,
+  /// receiving both the new state and the previous state.
+  ///
+  /// - Parameter listener: A closure called on each state change with (newState, previousState)
+  /// - Returns: A `Subscription` that can be used to cancel the subscription
+  public func subscribe(
+    _ listener: @escaping @MainActor @Sendable (State, State) -> Void
+  ) -> Subscription {
+    let id = UUID()
+    subscriptions[id] = listener
+    return Subscription { [weak self] in
+      self?.subscriptions.removeValue(forKey: id)
+    }
+  }
+
+  /// Destroys all active subscriptions
+  ///
+  /// After calling this method, no listeners will receive further state change notifications.
+  public func destroy() {
+    subscriptions.removeAll()
   }
 }
 
