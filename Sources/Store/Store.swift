@@ -77,6 +77,50 @@ public func createStore<State, Action>(
   middleware: [any Middleware<State>] = [],
   createAction: (StateSet<State>) -> Action
 ) -> (store: Store<State>, action: Action) {
+  createStore(initialState: initialState, middleware: middleware) { set, _ in
+    createAction(set)
+  }
+}
+
+/// Creates a store and its associated actions with both set and get capabilities
+///
+/// This overload extends the basic `createStore` by providing a getter function
+/// alongside the setter. This is useful for async actions or any scenario where
+/// the current state needs to be read at the time of execution rather than capture time.
+///
+/// The pattern follows Zustand's `(set, get, store)` approach where both a setter
+/// and getter are passed to the action creator.
+///
+/// - Parameters:
+///   - initialState: The initial state for the store
+///   - middleware: Array of middleware to apply to state updates (applied in reverse order)
+///   - createAction: A function that receives a StateSet and StateGet, and returns actions
+/// - Returns: A tuple containing the created store and its actions
+///
+/// ## Usage Example
+/// ```swift
+/// struct AppState {
+///   var count: Int = 0
+/// }
+///
+/// struct AppActions {
+///   let increment: () -> Void
+///   let getCount: () -> Int
+/// }
+///
+/// let (store, actions) = createStore(initialState: AppState()) { set, get in
+///   AppActions(
+///     increment: { set { $0.count += 1 } },
+///     getCount: { get().count }
+///   )
+/// }
+/// ```
+@MainActor
+public func createStore<State, Action>(
+  initialState: State,
+  middleware: [any Middleware<State>] = [],
+  createAction: (StateSet<State>, StateGet<State>) -> Action
+) -> (store: Store<State>, action: Action) {
   let store = Store(initialState: initialState)
 
   let baseSetter = StateSet<State> { updater in
@@ -90,6 +134,10 @@ public func createStore<State, Action>(
     }
   }
 
-  let action = createAction(setter)
+  let getter = StateGet<State> {
+    store.state
+  }
+
+  let action = createAction(setter, getter)
   return (store, action)
 }
