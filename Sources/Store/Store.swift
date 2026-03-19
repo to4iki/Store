@@ -18,10 +18,24 @@ public final class Store<State: Sendable> {
   /// - Note: State changes automatically trigger SwiftUI view updates via @Observable
   public private(set) var state: State
 
+  /// The initial state provided at creation time
+  ///
+  /// Used by `resetState()` to restore the store to its original state.
+  private let initialState: State
+
   /// Initializes the store with an initial state
   ///
   /// - Parameter initialState: The initial state value for the store
   init(initialState: State) {
+    self.initialState = initialState
+    self.state = initialState
+  }
+
+  /// Resets the store's state to the initial state provided at creation time
+  ///
+  /// This method restores the state to the value that was passed to the store's initializer,
+  /// useful for testing, undo/redo, or any scenario where a full state reset is needed.
+  func resetState() {
     self.state = initialState
   }
 

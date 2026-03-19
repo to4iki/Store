@@ -29,6 +29,17 @@ public struct StateSet<State> {
     set(updater)
   }
 
+  /// Replaces the entire state with a new value
+  ///
+  /// This is a convenience method equivalent to `self { state in state = newState }`.
+  /// Useful for state reset, hydration, or any scenario where the entire state
+  /// should be replaced rather than partially updated.
+  ///
+  /// - Parameter newState: The new state value to replace the current state
+  public func replace(_ newState: State) {
+    self { state in state = newState }
+  }
+
   /// Creates a scoped setter that operates on a child state
   ///
   /// This method enables slice composition by creating a StateSet that targets
