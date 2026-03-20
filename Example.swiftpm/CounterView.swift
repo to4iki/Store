@@ -9,12 +9,13 @@ struct CounterFeature {
   struct Action {
     let increment: () -> Void
     let decrement: () -> Void
+    let setTo: (Int) -> Void
     let reset: () -> Void
   }
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set in
+    let (store, action) = createStore(initialState: State()) { set in
       Action(
         increment: {
           set { $0.count += 1 }
@@ -22,11 +23,15 @@ struct CounterFeature {
         decrement: {
           set { $0.count -= 1 }
         },
+        setTo: { value in
+          set.replace(State(count: value))
+        },
         reset: {
-          set { $0.count = 0 }
+          store.resetState()
         }
       )
     }
+    return (store, action)
   }
 }
 
@@ -51,6 +56,9 @@ struct CounterView: View {
         Button("Reset") { action.reset() }
         Button("+") { action.increment() }
       }
+
+      Button("Set to 100") { action.setTo(100) }
+        .buttonStyle(.bordered)
     }
   }
 }
