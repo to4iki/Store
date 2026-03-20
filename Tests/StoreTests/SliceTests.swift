@@ -89,4 +89,28 @@ struct SliceTests {
     #expect(store.state.fish.fishes == 0)
     #expect(store.state.bear.bears == 2)
   }
+
+  @MainActor @Test
+  func scopedUpdateIsolation() {
+    let (store, action) = useStore()
+    action.fish.addFish()
+    action.fish.addFish()
+    #expect(store.state.fish.fishes == 2)
+    #expect(store.state.bear.bears == 0)
+
+    action.bear.addBear()
+    #expect(store.state.fish.fishes == 2)
+    #expect(store.state.bear.bears == 1)
+  }
+
+  @MainActor @Test
+  func eatFishWhenNoFish() {
+    let (store, action) = useStore()
+    #expect(store.state.fish.fishes == 0)
+    #expect(store.state.bear.bears == 0)
+
+    action.eatFish()
+    #expect(store.state.fish.fishes == 0)
+    #expect(store.state.bear.bears == 0)
+  }
 }

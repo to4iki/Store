@@ -4,7 +4,7 @@
 ![SPM compatible](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
-A small, fast and scalable state-management solution using simplified flux principles.
+A small, fast and scalable state-management solution using simplified flux principles, inspired by [Zustand](https://github.com/pmndrs/zustand).
 
 ## Installation
 ### Swift Package Manager
@@ -85,20 +85,52 @@ struct CounterView: View {
 ## Middleware
 Middleware provides a way to extend Store with additional functionality. Think of middleware as a pipeline that wraps around state updates - each middleware can inspect the current state, modify the update process, or perform side effects like logging.
 
-### Using Middleware
-Add middleware to your store by passing them to the `middlewares` parameter:
+### LoggingMiddleware
+A configurable logging middleware that supports custom log handlers, state formatting, and selective phase logging:
 
 ```swift
+// Basic usage (prints before/after state)
 let (store, action) = createStore(
   initialState: CounterFeature.State(),
-  middlewares: [SimplePrintMiddleware<CounterFeature.State>()]
+  middleware: [LoggingMiddleware<CounterFeature.State>()]
+) { set in
+  // ... action definitions
+}
+
+// Advanced: custom handler, selective field logging, after-only
+let (store, action) = createStore(
+  initialState: CounterFeature.State(),
+  middleware: [
+    LoggingMiddleware<CounterFeature.State>(
+      handler: { os_log("%{public}@", $0) },
+      stateTransform: { "count=\($0.count)" },
+      logBefore: false,
+      logAfter: true
+    )
+  ]
 ) { set in
   // ... action definitions
 }
 ```
 
+### Custom Middleware
+Implement the `Middleware` protocol to create your own:
+
+```swift
+struct ValidationMiddleware: Middleware {
+  func apply(currentState: AppState, next: StateSet<AppState>) -> StateSet<AppState> {
+    StateSet<AppState> { updater in
+      var newState = currentState
+      updater(&newState)
+      // Add custom logic (validation, transformation, etc.)
+      next { state in state = newState }
+    }
+  }
+}
+```
+
 ## Slices
-Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. Like [Zustand's slices pattern](https://docs.pmnd.rs/zustand/guides/slices-pattern), each slice defines its own state and actions, and you compose them into a single store using `createStore` with `StateSet.scoped`.
+Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. Like [Zustand's slices pattern](https://zustand.docs.pmnd.rs/learn/guides/slices-pattern), each slice defines its own state and actions, and you compose them into a single store using `createStore` with `StateSet.scoped`.
 
 ### Defining Slices
 Implement the `Slice` protocol to define each slice:
@@ -114,8 +146,6 @@ struct FishSlice: Slice {
   struct Action {
     let addFish: () -> Void
   }
-
-  var initialState = State()
 
   func createAction(_ set: StateSet<State>) -> Action {
     Action(
@@ -134,8 +164,6 @@ struct BearSlice: Slice {
   struct Action {
     let addBear: () -> Void
   }
-
-  var initialState: State { State() }
 
   func createAction(_ set: StateSet<State>) -> Action {
     Action(

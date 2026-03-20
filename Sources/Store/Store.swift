@@ -49,7 +49,7 @@ public final class Store<State: Sendable> {
 ///
 /// - Parameters:
 ///   - initialState: The initial state for the store
-///   - middlewares: Array of middleware to apply to state updates (applied in reverse order)
+///   - middleware: Array of middleware to apply to state updates (applied in reverse order)
 ///   - createAction: A function that receives a StateSet and returns actions
 /// - Returns: A tuple containing the created store and its actions
 ///
