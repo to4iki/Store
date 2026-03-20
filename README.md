@@ -82,6 +82,53 @@ struct CounterView: View {
 }
 ```
 
+## Reading State with `get`
+The `createStore` function supports an optional `get` parameter alongside `set`, following [Zustand's `(set, get)` pattern](https://zustand.docs.pmnd.rs/guides/updating-state). This is useful when actions need to read the current state at execution time rather than capture time — especially for async actions or conditional updates.
+
+```swift
+struct CounterFeature {
+  struct State: Sendable {
+    var count: Int = 0
+  }
+
+  struct Action {
+    let incrementIfPositive: () -> Void
+    let doubleCount: () -> Void
+  }
+
+  @MainActor
+  func useStore() -> (store: Store<State>, action: Action) {
+    createStore(initialState: State()) { set, get in
+      Action(
+        incrementIfPositive: {
+          if get().count > 0 {
+            set { $0.count += 1 }
+          }
+        },
+        doubleCount: {
+          let current = get().count
+          set { $0.count = current * 2 }
+        }
+      )
+    }
+  }
+}
+```
+
+`StateGet` also supports `scoped(_:)` for use within slices:
+
+```swift
+createStore(initialState: AppState()) { set, get in
+  AppAction(
+    fish: FishSlice().createAction(set.scoped(\.fish)),
+    logFishCount: {
+      let count = get.scoped(\.fish)().fishes
+      print("Current fish count: \(count)")
+    }
+  )
+}
+```
+
 ## Middleware
 Middleware provides a way to extend Store with additional functionality. Think of middleware as a pipeline that wraps around state updates - each middleware can inspect the current state, modify the update process, or perform side effects like logging.
 
