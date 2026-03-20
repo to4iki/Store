@@ -7,7 +7,7 @@
 ///
 /// Compose slices using `createStore` with `StateSet.scoped`:
 /// ```swift
-/// createStore(initialState: AppState()) { set, _ in
+/// createStore(initialState: AppState()) { set in
 ///   AppAction(
 ///     fish: FishSlice().createAction(set.scoped(\.fish)),
 ///     bear: BearSlice().createAction(set.scoped(\.bear))

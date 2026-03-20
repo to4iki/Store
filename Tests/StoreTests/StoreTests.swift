@@ -15,7 +15,7 @@ struct StoreTests {
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set, _ in
+    createStore(initialState: State()) { set in
       Action(
         increment: {
           set { $0.count += 1 }

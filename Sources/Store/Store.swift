@@ -44,9 +44,52 @@ public final class Store<State: Sendable> {
 /// then returns a store instance with its corresponding actions. The actions
 /// provide an interface for updating the state in a type-safe manner.
 ///
-/// The pattern follows Zustand's `(set, get)` approach where both a setter
-/// and getter are passed to the action creator. Use `get` to read the current
-/// state at execution time, which is useful for async actions or conditional updates.
+/// The pattern follows Zustand's approach where actions are created by passing
+/// a setter function that can be called to update the store's state.
+///
+/// - Parameters:
+///   - initialState: The initial state for the store
+///   - middleware: Array of middleware to apply to state updates (applied in reverse order)
+///   - createAction: A function that receives a StateSet and returns actions
+/// - Returns: A tuple containing the created store and its actions
+///
+/// ## Usage Example
+/// ```swift
+/// struct AppState {
+///   var count: Int = 0
+/// }
+///
+/// struct AppActions {
+///   let increment: () -> Void
+///   let decrement: () -> Void
+/// }
+///
+/// let (store, actions) = createStore(initialState: AppState()) { set in
+///   AppActions(
+///     increment: { set { $0.count += 1 } },
+///     decrement: { set { $0.count -= 1 } }
+///   )
+/// }
+/// ```
+@MainActor
+public func createStore<State, Action>(
+  initialState: State,
+  middleware: [any Middleware<State>] = [],
+  createAction: (StateSet<State>) -> Action
+) -> (store: Store<State>, action: Action) {
+  createStore(initialState: initialState, middleware: middleware) { set, _ in
+    createAction(set)
+  }
+}
+
+/// Creates a store and its associated actions with both set and get capabilities
+///
+/// This overload extends the basic `createStore` by providing a getter function
+/// alongside the setter. This is useful for async actions or any scenario where
+/// the current state needs to be read at the time of execution rather than capture time.
+///
+/// The pattern follows Zustand's `(set, get, store)` approach where both a setter
+/// and getter are passed to the action creator.
 ///
 /// - Parameters:
 ///   - initialState: The initial state for the store
