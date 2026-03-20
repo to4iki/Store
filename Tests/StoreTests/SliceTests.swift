@@ -54,7 +54,7 @@ struct SliceTests {
 
   @MainActor
   func useStore() -> (store: Store<AppState>, action: AppAction) {
-    createStore(initialState: AppState()) { set in
+    createStore(initialState: AppState()) { set, _ in
       AppAction(
         fish: FishSlice().createAction(set.scoped(\.fish)),
         bear: BearSlice().createAction(set.scoped(\.bear)),

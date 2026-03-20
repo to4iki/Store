@@ -14,7 +14,7 @@ struct CounterFeature {
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set in
+    createStore(initialState: State()) { set, _ in
       Action(
         increment: {
           set { $0.count += 1 }

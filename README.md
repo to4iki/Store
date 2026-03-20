@@ -34,7 +34,7 @@ struct CounterFeature {
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set in
+    createStore(initialState: State()) { set, _ in
       Action(
         increment: {
           set { $0.count += 1 }
@@ -140,7 +140,7 @@ A configurable logging middleware that supports custom log handlers, state forma
 let (store, action) = createStore(
   initialState: CounterFeature.State(),
   middleware: [LoggingMiddleware<CounterFeature.State>()]
-) { set in
+) { set, _ in
   // ... action definitions
 }
 
@@ -155,7 +155,7 @@ let (store, action) = createStore(
       logAfter: true
     )
   ]
-) { set in
+) { set, _ in
   // ... action definitions
 }
 ```
@@ -240,7 +240,7 @@ struct BearFishFeature {
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set in
+    createStore(initialState: State()) { set, _ in
       Action(
         fish: FishSlice().createAction(set.scoped(\.fish)),
         bear: BearSlice().createAction(set.scoped(\.bear)),
