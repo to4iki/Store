@@ -34,7 +34,7 @@ struct CounterFeature {
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set in
+    let (store, action) = createStore(initialState: State()) { set in
       Action(
         increment: {
           set { $0.count += 1 }
@@ -43,10 +43,11 @@ struct CounterFeature {
           set { $0.count -= 1 }
         },
         reset: {
-          set { $0.count = 0 }
+          store.resetState()
         }
       )
     }
+    return (store, action)
   }
 }
 ```
@@ -126,6 +127,35 @@ struct ValidationMiddleware: Middleware {
       next { state in state = newState }
     }
   }
+}
+```
+
+## Reset / Replace State
+Store supports resetting to the initial state and replacing the entire state at once.
+
+### resetState
+`Store.resetState()` restores the store to the state provided at creation time:
+
+```swift
+let (store, action) = createStore(initialState: State()) { set in
+  Action(
+    reset: {
+      store.resetState()  // Restores to the initial state
+    }
+  )
+}
+```
+
+### StateSet.replace
+`StateSet.replace(_:)` replaces the entire state with a new value, unlike partial updates via `set { $0.field = value }`:
+
+```swift
+let (store, action) = createStore(initialState: State()) { set in
+  Action(
+    setTo100: {
+      set.replace(State(count: 100))  // Replaces entire state
+    }
+  )
 }
 ```
 
