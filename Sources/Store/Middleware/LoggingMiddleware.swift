@@ -1,6 +1,6 @@
 /// Configurable logging middleware for intercepting state updates
 ///
-/// Unlike ``SimplePrintMiddleware``, this middleware allows you to customize
+/// A configurable logging middleware that allows you to customize
 /// the log output destination, state formatting, and which phases to log.
 ///
 /// ```swift

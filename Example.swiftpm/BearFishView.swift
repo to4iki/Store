@@ -51,7 +51,7 @@ struct BearFishFeature {
 
   @MainActor
   func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State(), middleware: [SimplePrintMiddleware()]) { set in
+    createStore(initialState: State(), middleware: [LoggingMiddleware()]) { set in
       Action(
         fish: FishSlice().createAction(set.scoped(\.fish)),
         bear: BearSlice().createAction(set.scoped(\.bear)),
