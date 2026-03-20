@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 /// A Zustand-like state management store for SwiftUI
@@ -18,6 +19,9 @@ public final class Store<State: Sendable> {
   /// - Note: State changes automatically trigger SwiftUI view updates via @Observable
   public private(set) var state: State
 
+  /// Registered selector-based subscriptions, keyed by unique ID
+  private var subscriptions: [UUID: (State, State) -> Void] = [:]
+
   /// Initializes the store with an initial state
   ///
   /// - Parameter initialState: The initial state value for the store
@@ -28,13 +32,67 @@ public final class Store<State: Sendable> {
   /// Updates the store's state using a functional setter
   ///
   /// This method creates a copy of the current state, applies the updater function
-  /// to modify it, and then sets the new state.
+  /// to modify it, and then sets the new state. After updating, all registered
+  /// selector subscriptions are notified.
   ///
   /// - Parameter updater: A closure that receives an inout reference to the state for modification
   func set(_ updater: StateUpdater<State>) {
+    let oldState = state
     var newState = state
     updater(&newState)
     self.state = newState
+    notifySubscriptions(oldState: oldState, newState: newState)
+  }
+
+  /// Subscribes to changes of a selected value using `Equatable` conformance for comparison
+  ///
+  /// The listener is called only when the selected value changes according to `Equatable`.
+  /// Returns a `Subscription` handle that can be used to cancel the subscription.
+  ///
+  /// - Parameters:
+  ///   - selector: A closure that extracts the value of interest from the state
+  ///   - listener: A closure called with the old and new selected values when a change is detected
+  /// - Returns: A ``Subscription`` that can be cancelled to stop receiving notifications
+  public func subscribe<Selected: Equatable>(
+    selector: @escaping (State) -> Selected,
+    listener: @escaping @MainActor @Sendable (Selected, Selected) -> Void
+  ) -> Subscription {
+    subscribe(selector: selector, equalityFn: { $0 == $1 }, listener: listener)
+  }
+
+  /// Subscribes to changes of a selected value using a custom equality function for comparison
+  ///
+  /// The listener is called only when the selected value changes according to the provided
+  /// equality function. Returns a `Subscription` handle that can be used to cancel the subscription.
+  ///
+  /// - Parameters:
+  ///   - selector: A closure that extracts the value of interest from the state
+  ///   - equalityFn: A closure that determines whether two selected values are equal
+  ///   - listener: A closure called with the old and new selected values when a change is detected
+  /// - Returns: A ``Subscription`` that can be cancelled to stop receiving notifications
+  public func subscribe<Selected>(
+    selector: @escaping (State) -> Selected,
+    equalityFn: @escaping @Sendable (Selected, Selected) -> Bool,
+    listener: @escaping @MainActor @Sendable (Selected, Selected) -> Void
+  ) -> Subscription {
+    let id = UUID()
+
+    subscriptions[id] = { oldState, newState in
+      let oldSelected = selector(oldState)
+      let newSelected = selector(newState)
+      guard !equalityFn(oldSelected, newSelected) else { return }
+      listener(oldSelected, newSelected)
+    }
+
+    return Subscription {
+      self.subscriptions.removeValue(forKey: id)
+    }
+  }
+
+  private func notifySubscriptions(oldState: State, newState: State) {
+    for handler in subscriptions.values {
+      handler(oldState, newState)
+    }
   }
 }
 
