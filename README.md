@@ -12,11 +12,9 @@ A small, fast and scalable state-management solution using simplified flux princ
 .package(url: "https://github.com/to4iki/Store", from: <#version#>)
 ```
 
-## Usage
-Store provides a simple and intuitive API for state management, inspired by Zustand.
+## Basic Example
 
-### Basic Example
-First, define your state and actions:
+Define your state and actions:
 
 ```swift
 import Store
@@ -52,7 +50,7 @@ struct CounterFeature {
 }
 ```
 
-Then use it in your SwiftUI view:
+Use it in your SwiftUI view:
 
 ```swift
 import SwiftUI
@@ -83,192 +81,11 @@ struct CounterView: View {
 }
 ```
 
-## Middleware
-Middleware provides a way to extend Store with additional functionality. Think of middleware as a pipeline that wraps around state updates - each middleware can inspect the current state, modify the update process, or perform side effects like logging.
+## Documentation
 
-### LoggingMiddleware
-A configurable logging middleware that supports custom log handlers, state formatting, and selective phase logging:
-
-```swift
-// Basic usage (prints before/after state)
-let (store, action) = createStore(
-  initialState: CounterFeature.State(),
-  middleware: [LoggingMiddleware<CounterFeature.State>()]
-) { set in
-  // ... action definitions
-}
-
-// Advanced: custom handler, selective field logging, after-only
-let (store, action) = createStore(
-  initialState: CounterFeature.State(),
-  middleware: [
-    LoggingMiddleware<CounterFeature.State>(
-      handler: { os_log("%{public}@", $0) },
-      stateTransform: { "count=\($0.count)" },
-      logBefore: false,
-      logAfter: true
-    )
-  ]
-) { set in
-  // ... action definitions
-}
-```
-
-### Custom Middleware
-Implement the `Middleware` protocol to create your own:
-
-```swift
-struct ValidationMiddleware: Middleware {
-  func apply(currentState: AppState, next: StateSet<AppState>) -> StateSet<AppState> {
-    StateSet<AppState> { updater in
-      var newState = currentState
-      updater(&newState)
-      // Add custom logic (validation, transformation, etc.)
-      next { state in state = newState }
-    }
-  }
-}
-```
-
-## Reset / Replace State
-Store supports resetting to the initial state and replacing the entire state at once.
-
-### resetState
-`Store.resetState()` restores the store to the state provided at creation time:
-
-```swift
-let (store, action) = createStore(initialState: State()) { set in
-  Action(
-    reset: {
-      store.resetState()  // Restores to the initial state
-    }
-  )
-}
-```
-
-### StateSet.replace
-`StateSet.replace(_:)` replaces the entire state with a new value, unlike partial updates via `set { $0.field = value }`:
-
-```swift
-let (store, action) = createStore(initialState: State()) { set in
-  Action(
-    setTo100: {
-      set.replace(State(count: 100))  // Replaces entire state
-    }
-  )
-}
-```
-
-## Slices
-Slices allow you to modularize your state management by breaking down large stores into smaller, focused units that can be composed together. Like [Zustand's slices pattern](https://zustand.docs.pmnd.rs/learn/guides/slices-pattern), each slice defines its own state and actions, and you compose them into a single store using `createStore` with `StateSet.scoped`.
-
-### Defining Slices
-Implement the `Slice` protocol to define each slice:
-
-```swift
-import Store
-
-struct FishSlice: Slice {
-  struct State: Sendable {
-    var fishes: Int = 0
-  }
-
-  struct Action {
-    let addFish: () -> Void
-  }
-
-  func createAction(_ set: StateSet<State>) -> Action {
-    Action(
-      addFish: {
-        set { $0.fishes += 1 }
-      }
-    )
-  }
-}
-
-struct BearSlice: Slice {
-  struct State: Sendable {
-    var bears: Int = 0
-  }
-
-  struct Action {
-    let addBear: () -> Void
-  }
-
-  func createAction(_ set: StateSet<State>) -> Action {
-    Action(
-      addBear: {
-        set { $0.bears += 1 }
-      }
-    )
-  }
-}
-```
-
-### Composing Slices
-Compose slices into a single store using `createStore` and `set.scoped`. Define your own combined state and action types — no wrapper types needed:
-
-```swift
-struct BearFishFeature {
-  struct State: Sendable {
-    var fish = FishSlice.State()
-    var bear = BearSlice.State()
-  }
-
-  struct Action {
-    let fish: FishSlice.Action
-    let bear: BearSlice.Action
-    let eatFish: () -> Void
-  }
-
-  @MainActor
-  func useStore() -> (store: Store<State>, action: Action) {
-    createStore(initialState: State()) { set in
-      Action(
-        fish: FishSlice().createAction(set.scoped(\.fish)),
-        bear: BearSlice().createAction(set.scoped(\.bear)),
-        eatFish: {
-          set { state in
-            if state.fish.fishes > 0 {
-              state.fish.fishes -= 1
-              state.bear.bears += 1
-            }
-          }
-        }
-      )
-    }
-  }
-}
-```
-
-Then use it in your SwiftUI view:
-
-```swift
-struct BearFishView: View {
-  @State private var store: Store<BearFishFeature.State>
-  private let action: BearFishFeature.Action
-
-  init() {
-    let feature = BearFishFeature()
-    let (store, action) = feature.useStore()
-    self._store = State(initialValue: store)
-    self.action = action
-  }
-
-  var body: some View {
-    VStack {
-      Text("🐟 Fishes: \(store.state.fish.fishes)")
-      Text("🐻 Bears: \(store.state.bear.bears)")
-
-      HStack {
-        Button("Add Fish") { action.fish.addFish() }
-        Button("Add Bear") { action.bear.addBear() }
-        Button("Bear Eats Fish") { action.eatFish() }
-      }
-    }
-  }
-}
-```
+- [Slices](docs/slices.md) - Modularize state with the slices pattern
+- [Middleware](docs/middleware.md) - Extend Store with logging and custom middleware
+- [Reset / Replace State](docs/reset-replace.md) - Reset or replace the entire state
 
 ## License
 Store is released under the MIT license.
