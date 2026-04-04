@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.3](https://github.com/to4iki/Store/compare/0.1.2...0.1.3) - 2026-04-03
+- Improve docs, Sendable conformance, and test coverage by @to4iki in https://github.com/to4iki/Store/pull/14
+- feat: add configurable LoggingMiddleware by @to4iki in https://github.com/to4iki/Store/pull/19
+- feat: add resetState and StateSet.replace for state replacement by @to4iki in https://github.com/to4iki/Store/pull/21
+- docs: reorganize documentation into docs/ directory by @to4iki in https://github.com/to4iki/Store/pull/22
+
 ## [0.1.2](https://github.com/to4iki/Store/compare/0.1.1...0.1.2) - 2026-03-14
 - Swift 6.2 by @to4iki in https://github.com/to4iki/Store/pull/6
 - chore: add tagpr for automated release flow by @to4iki in https://github.com/to4iki/Store/pull/10
