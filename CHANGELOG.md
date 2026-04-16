@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.1.4](https://github.com/to4iki/Store/compare/0.1.3...0.1.4) - 2026-04-16
+- chore: update managed files by @to4iki in https://github.com/to4iki/Store/pull/23
+
 ## [0.1.3](https://github.com/to4iki/Store/compare/0.1.2...0.1.3) - 2026-04-03
 - Improve docs, Sendable conformance, and test coverage by @to4iki in https://github.com/to4iki/Store/pull/14
 - feat: add configurable LoggingMiddleware by @to4iki in https://github.com/to4iki/Store/pull/19
