@@ -4,19 +4,13 @@ coverage:
   exclude:
     - Tests/**/*.swift
     - .build/**
-  badge:
-    path: docs/coverage.svg
 codeToTestRatio:
   code:
     - Sources/**/*.swift
   test:
     - Tests/**/*.swift
-  badge:
-    path: docs/ratio.svg
 testExecutionTime:
   if: true
-  badge:
-    path: docs/time.svg
 report:
   if: is_default_branch
   datastores:
@@ -28,5 +22,3 @@ diff:
     - artifact://${GITHUB_REPOSITORY}
 summary:
   if: true
-push:
-  if: is_default_branch
