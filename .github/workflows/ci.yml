@@ -18,11 +18,17 @@ jobs:
       matrix:
         os: [macos-latest]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     steps:
       - uses: SwiftyLab/setup-swift@latest
         with:
           swift-version: "6.2"
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Run tests
-        run: make test
+      - name: Run tests with coverage
+        run: make coverage
+      - name: Run octocov
+        uses: k1LoW/octocov-action@v1
