@@ -14,19 +14,19 @@ codeToTestRatio:
   badge:
     path: docs/ratio.svg
 testExecutionTime:
-  if: github.event_name == 'push'
+  if: true
   badge:
     path: docs/time.svg
 report:
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  if: is_default_branch
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 comment:
-  if: github.event_name == 'pull_request'
+  if: is_pull_request
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}
 summary:
   if: true
 push:
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  if: is_default_branch
