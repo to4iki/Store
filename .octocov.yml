@@ -4,13 +4,19 @@ coverage:
   exclude:
     - Tests/**/*.swift
     - .build/**
+  badge:
+    path: docs/coverage.svg
 codeToTestRatio:
   code:
     - Sources/**/*.swift
   test:
     - Tests/**/*.swift
+  badge:
+    path: docs/ratio.svg
 testExecutionTime:
   if: github.event_name == 'push'
+  badge:
+    path: docs/time.svg
 report:
   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   datastores:
@@ -22,7 +28,5 @@ diff:
     - artifact://${GITHUB_REPOSITORY}
 summary:
   if: true
-badge:
-  path: docs/coverage.svg
 push:
   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
