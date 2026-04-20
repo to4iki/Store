@@ -2,7 +2,6 @@
 ![Swift 6](https://img.shields.io/badge/swift-6-orange.svg)
 ![iOS 17+](https://img.shields.io/badge/iOS-17%2B-blue.svg)
 ![SPM compatible](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)
-
 ![Coverage](https://raw.githubusercontent.com/to4iki/Store/main/docs/coverage.svg)
 ![Code to Test Ratio](https://raw.githubusercontent.com/to4iki/Store/main/docs/ratio.svg)
 ![Test Execution Time](https://raw.githubusercontent.com/to4iki/Store/main/docs/time.svg)
